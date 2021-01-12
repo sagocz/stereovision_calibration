@@ -7,7 +7,7 @@ def saveCoefficients(mtx, dist, path):
     cv_file.write("D", dist)
     cv_file.release()
 
-def saveStereoCoefficients(path, K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q)
+def saveStereoCoefficients(path, K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q):
 
     cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_WRITE)
     cv_file.write("K1", K1)

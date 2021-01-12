@@ -16,7 +16,7 @@ def loadImagePoints(first_dir, first_prefix, second_dir, second_prefix, square_s
     pattern_size = (9,6)
 
     objp = np.zeros((9 * 6, 3), np.float32)
-    objp[:, :2] = np.mgrid[0:width, 0:height].T.reshape(-1, 2)
+    objp[:, :2] = np.mgrid[0:9, 0:6].T.reshape(-1, 2)
 
     objp = objp * square_size  # Create real world coords. Use your metric.
 
@@ -27,14 +27,14 @@ def loadImagePoints(first_dir, first_prefix, second_dir, second_prefix, square_s
 
     # First directory path correction. Remove the last character if it is '/'
     if first_dir[-1:] == '/':
-        left_dir = left_dir[:-1]
+        first_dir = first_dir[:-1]
 
     # Second directory path correction. Remove the last character if it is '/'
     if second_dir[-1:] == '/':
-        right_dir = right_dir[:-1]
+        second_dir = second_dir[:-1]
 
-    first_images = glob.glob(first_dir + '/' + first_prefix + '*.png')
-    second_images = glob.glob(second_dir + '/' + second_prefix + '*.png')
+    first_images = glob.glob(r'data\left_fixed_stereo\*.png')
+    second_images = glob.glob(r'data\right_fixed_stereo\*.png')
 
     first_images.sort()
     second_images.sort()
@@ -75,12 +75,12 @@ def loadImagePoints(first_dir, first_prefix, second_dir, second_prefix, square_s
             print("Chessboard couldn't detected. Image pair: ", first_im, " and ", second_im)
             continue
 
-    image_size = gray_right.shape  # If you have no acceptable pair, you may have an error here.
-    return [objpoints, left_imgpoints, right_imgpoints]
+    image_size = gray_second.shape  # If you have no acceptable pair, you may have an error here.
+    return [objpoints, first_imgpoints, second_imgpoints]
 
-def stereoCalibrate(first_file, second_file, first_dir, second_dir, first_prefix, second_prefix, square_size)
+def stereoCalibrate(first_file, second_file, first_dir, second_dir, first_prefix, second_prefix, square_size, save_file):
 
-    objp, firstp, secondp = load_image_points(first_dir, first_prefix, second_dir, second_prefix, square_size)
+    objp, firstp, secondp = loadImagePoints(first_dir, first_prefix, second_dir, second_prefix, square_size)
 
     K1, D1 = loadCoefficients(first_file)
     K2, D2 = loadCoefficients(second_file)
@@ -95,10 +95,25 @@ def stereoCalibrate(first_file, second_file, first_dir, second_dir, first_prefix
 
     saveStereoCoefficients(save_file, K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q)
 
-if __name__ = '__main__':
+if __name__ == '__main__':
+
+    # first_file & second_file string with example_single_cam_params.yaml
+    # first_dir & second_dir string with images_fixed_stereo - folder with fixed
+    # first_prefix & second_prefix with first / second etc < this is the img file description
+    # square_size < that a float type variable for scalling points into real world coordinates
+    # save_file < the name of file with stereo params
 
     parser = argparse.ArgumentParser(description='Camera calibration')
 
+    parser.add_argument('--first_file', type=str, required=True, help='first matrix file')
+    parser.add_argument('--second_file', type=str, required=True, help='second matrix file')
+    parser.add_argument('--first_dir', type=str, required=True, help='first images directory path')
+    parser.add_argument('--second_dir', type=str, required=True, help='second images directory path')
+    parser.add_argument('--first_prefix', type=str, required=True, help='first image prefix')
+    parser.add_argument('--second_prefix', type=str, required=True, help='second image prefix')
+    parser.add_argument('--square_size', type=float, required=False, help='chessboard square size')
+    parser.add_argument('--save_file', type=str, required=True, help='YML file to save stereo calibration matrices')
+
     args = parser.parse_args()
 
-    stereoCalibrate()
+    stereoCalibrate(args.first_file, args.second_file, args.first_dir, args.second_dir, args.first_prefix, args.second_prefix, args.square_size, args.save_file)
