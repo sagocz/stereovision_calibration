@@ -39,7 +39,15 @@ def loadImagePoints(first_dir, first_prefix, second_dir, second_prefix, square_s
     first_images.sort()
     second_images.sort()
 
-        for first_im, second_im in pair_images:
+        # Pairs should be same size. Otherwise we have sync problem.
+    if len(first_images) != len(second_images):
+        print("Liczba obrazow z pierwszej kamery, nie jest równa drugiej")
+        print("First images count: ", len(first_images))
+        print("Second images count: ", len(second_images))
+        sys.exit(-1)
+
+    pair_images = zip(first_images, second_images)  # Pair the images for single loop handling
+    for first_im, second_im in pair_images:
         # Right Object Points
         second = cv2.imread(second_im)
         gray_second = cv2.cvtColor(second, cv2.COLOR_BGR2GRAY)
@@ -54,7 +62,7 @@ def loadImagePoints(first_dir, first_prefix, second_dir, second_prefix, square_s
         # Find the chess board corners
         ret_first, corners_first = cv2.findChessboardCorners(gray_first, pattern_size, cv2.CALIB_CB_ADAPTIVE_THRESH | cv2.CALIB_CB_FILTER_QUADS)
 
-            if ret_first and ret_second:  # If both image is okay. Otherwise we explain which pair has a problem and continue
+        if ret_first and ret_second:  # If both image is okay. Otherwise we explain which pair has a problem and continue
             # Object points
             objpoints.append(objp)
             # Right points
@@ -69,6 +77,28 @@ def loadImagePoints(first_dir, first_prefix, second_dir, second_prefix, square_s
 
     image_size = gray_right.shape  # If you have no acceptable pair, you may have an error here.
     return [objpoints, left_imgpoints, right_imgpoints]
+
 def stereoCalibrate(first_file, second_file, first_dir, second_dir, first_prefix, second_prefix, square_size)
 
-    objp, leftp, rightp = load_image_points()
+    objp, firstp, secondp = load_image_points(first_dir, first_prefix, second_dir, second_prefix, square_size)
+
+    K1, D1 = loadCoefficients(first_file)
+    K2, D2 = loadCoefficients(second_file)
+
+    flag = 0
+
+    flag |= cv2.CALIB_USE_INTRINSIC_GUESS
+
+    ret, K1, D1, K2, D2, R, T, E, F = cv2.stereoCalibrate(objp, firstp, secondp, K1, D1, K2, D2, image_size)
+    print("Stereo calibration rms:", ret)
+    R1, R2, P1, P2, Q, roi_first, roi_second = cv2.stereoRectify(K1, D1, K2, D2, image_size, R, T, flags = cv2.CALIB_ZERO_DISPARITY, alpha = 0.9)
+
+    saveStereoCoefficients(save_file, K1, D1, K2, D2, R, T, E, F, R1, R2, P1, P2, Q)
+
+if __name__ = '__main__':
+
+    parser = argparse.ArgumentParser(description='Camera calibration')
+
+    args = parser.parse_args()
+
+    stereoCalibrate()
