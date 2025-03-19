@@ -1,0 +1,6 @@
+type: "single" # "single" for single calibrator, "stereo" for stereo camera calibration
+image_dir: "data/right_png"
+prefix: ""
+square_size: 0.025  # Size of a single square in meters
+pattern_size: [12, 12]  # Number of vertices on the chessboard
+save_file: "calibration_single.yml"

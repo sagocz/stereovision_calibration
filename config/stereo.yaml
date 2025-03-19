@@ -1,0 +1,7 @@
+type: "stereo" # "single" for single calibrator, "stereo" for stereo camera calibration
+square_size: 0.025  # Size of a single square in meters
+first_file: "stereo_left.png"  # Reference file name for the first camera
+second_file: "stereo_right.png"  # Reference file name for the second camera
+first_dir: "data/left_png"  # Folder with images of the first camera
+second_dir: "data/right_png"  # Folder with images of the second camera
+save_file: "calibration_stereo.yml"
